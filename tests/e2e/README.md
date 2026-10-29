@@ -33,3 +33,54 @@ git switch feature/qa/playwright-e2e && git merge main
 ```
 
 If `--ff-only` fails, `main` has diverged. Stop and tell Brian.
+
+## Running tests
+
+Tests boot a fresh [WordPress Playground](https://wordpress.github.io/wordpress-playground/) site with this repo's plugins, mu-plugins, theme, and `vendor/` mounted, then load pages from `fixtures/`. No Lando or Docker is needed.
+
+One-time setup, from the repo root:
+
+```sh
+nvm use
+composer create-auth      # needs the 1Password CLI
+composer install          # with PHP 8.4
+npm ci
+npm run build
+npx playwright install chromium webkit
+```
+
+Then, from the repo root:
+
+| Command | Runs |
+|---|---|
+| `npm run test:e2e` | Everything |
+| `npm run test:e2e:smoke` | Smoke tests only |
+| `npm run test:e2e:a11y` | Accessibility tests (WCAG 2.x A/AA plus axe best practices) |
+| `npm run test:e2e:wcag` | Accessibility tests, WCAG only |
+| `npm run test:e2e:latest` | Everything, on the latest stable WordPress instead of the version in `composer.json` |
+| `npm run test:e2e:beta` | Everything, on the current WordPress beta or RC |
+
+Each run prints the WordPress version the site actually runs. Accessibility failures are labeled with their WCAG criteria or as a best practice. Failed tests attach axe's full results as `axe-results`. Results land in `tests/e2e/.results/`, and `npx playwright show-report tests/e2e/.report` opens the HTML report.
+
+## Browsing the test site
+
+To check a failure by hand, boot the same site the tests use:
+
+| Command | WordPress version |
+|---|---|
+| `npm run test:e2e:server` | Version in `composer.json` |
+| `npm run test:e2e:server:latest` | Latest stable |
+| `npm run test:e2e:server:beta` | Current beta or RC |
+
+Wait for `Ready!` before loading any page. Links to every page the tests cover print right after it. Paths come from the fixtures in this repo and won't match the demo site. Requests made during boot leave Playground workers serving the default theme until restart. Each site takes port 9400, or a free port if that's taken, so several can run side by side (for example, the pinned version next to beta). Stop one with Ctrl+C. Tests always boot their own fresh site on port 9500, so they can run while these are up.
+
+## Environment variables
+
+The scripts above cover the usual cases. These variables are for anything else:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `WP_VERSION` | `extra.wordpress-version` in `composer.json` | WP version, `latest`, `beta`, `nightly`, or a zip URL |
+| `WP_BASE_URL` | Playground on `E2E_PORT` | Run against another site (Lando, review app, UAT) instead of booting Playground |
+| `E2E_PORT` | `9500` | Port for the Playground site that tests boot |
+| `A11Y_BEST_PRACTICE` | on | Set to `0` to skip best-practice rules |

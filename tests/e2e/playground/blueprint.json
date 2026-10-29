@@ -1,0 +1,28 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"steps": [
+		{
+			"step": "defineWpConfigConsts",
+			"consts": {
+				"WP_ENVIRONMENT_TYPE": "local",
+				"WP_DEBUG": true,
+				"WP_DEBUG_DISPLAY": true
+			}
+		},
+		{
+			"step": "setSiteOptions",
+			"options": {
+				"blogname": "ModernPress E2E",
+				"permalink_structure": "/%postname%/"
+			}
+		},
+		{
+			"step": "activateTheme",
+			"themeFolderName": "core"
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; foreach ( [ 'page', 'post' ] as $type ) foreach ( glob( \"/e2e/fixtures/{$type}s/*.html\" ) as $file ) { wp_insert_post( [ 'post_type' => $type, 'post_status' => 'publish', 'post_name' => basename( $file, '.html' ), 'post_title' => ucwords( str_replace( '-', ' ', basename( $file, '.html' ) ) ), 'post_content' => file_get_contents( $file ) ] ); } flush_rewrite_rules();"
+		}
+	]
+}

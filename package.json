@@ -36,11 +36,14 @@
 		"swiper": "^14.0"
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "^4.14.0",
 		"@csstools/postcss-global-data": "^4.0",
+		"@playwright/test": "^1.64.1",
 		"@wordpress/create-block": "^4.75.0",
 		"@wordpress/element": "^8.0.0",
 		"@wordpress/primitives": "^4.40.0",
 		"@wordpress/scripts": "^36.0.0",
+		"@wp-playground/cli": "^3.1.61",
 		"browser-sync": "^3.0.4",
 		"browser-sync-v3-webpack-plugin": "^0.1.0",
 		"cssnano": "^9.2.0",
@@ -84,6 +87,15 @@
 		"icon-picker:cleanup-components": "node $npm_package_config_coreThemeBlocksDir/tribe/icon-picker/scripts/cleanup-components.js",
 		"icon-picker:generate-icons-list": "node $npm_package_config_coreThemeBlocksDir/tribe/icon-picker/scripts/generate-icons-list.js",
 		"icon-picker:lint": "wp-scripts lint-js \"$npm_package_config_coreThemeBlocksDir/tribe/icon-picker/**/*.js\" --fix",
-		"icon-picker:strip-react-import": "node $npm_package_config_coreThemeBlocksDir/tribe/icon-picker/scripts/strip-react-import.js"
+		"icon-picker:strip-react-import": "node $npm_package_config_coreThemeBlocksDir/tribe/icon-picker/scripts/strip-react-import.js",
+		"test:e2e": "playwright test -c tests/e2e/playwright.config.js",
+		"test:e2e:smoke": "playwright test -c tests/e2e/playwright.config.js --grep @smoke",
+		"test:e2e:a11y": "playwright test -c tests/e2e/playwright.config.js --grep @a11y",
+		"test:e2e:wcag": "A11Y_BEST_PRACTICE=0 playwright test -c tests/e2e/playwright.config.js --grep @a11y",
+		"test:e2e:latest": "WP_VERSION=latest playwright test -c tests/e2e/playwright.config.js",
+		"test:e2e:beta": "WP_VERSION=beta playwright test -c tests/e2e/playwright.config.js",
+		"test:e2e:server": "node tests/e2e/playground/server.js",
+		"test:e2e:server:latest": "WP_VERSION=latest node tests/e2e/playground/server.js",
+		"test:e2e:server:beta": "WP_VERSION=beta node tests/e2e/playground/server.js"
 	}
 }
