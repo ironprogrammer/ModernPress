@@ -50,10 +50,12 @@ const summarize = ( violation ) => {
 	}): ${ violation.help }\n${ nodes.join( '\n' ) }`;
 };
 
-for ( const { name, path } of pages ) {
+for ( const { name, path, fixture } of pages ) {
+	const tag = [ '@a11y', '@readonly', ...( fixture ? [ '@fixtures' ] : [] ) ];
+
 	test(
 		`${ name } has no axe violations`,
-		{ tag: '@a11y' },
+		{ tag },
 		async ( { page }, testInfo ) => {
 			await page.goto( path, { waitUntil: 'networkidle' } );
 

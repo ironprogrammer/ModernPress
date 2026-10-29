@@ -4,8 +4,14 @@ const pages = require( './pages' );
 const PHP_ERROR =
 	/<b>(Fatal error|Warning|Notice|Deprecated)<\/b>:|There has been a critical error/;
 
-for ( const { name, path, status } of pages ) {
-	test( `${ name } loads cleanly`, { tag: '@smoke' }, async ( { page } ) => {
+for ( const { name, path, status, fixture } of pages ) {
+	const tag = [
+		'@smoke',
+		'@readonly',
+		...( fixture ? [ '@fixtures' ] : [] ),
+	];
+
+	test( `${ name } loads cleanly`, { tag }, async ( { page } ) => {
 		const consoleErrors = [];
 		const failedRequests = [];
 

@@ -6,7 +6,8 @@
 			"consts": {
 				"WP_ENVIRONMENT_TYPE": "local",
 				"WP_DEBUG": true,
-				"WP_DEBUG_DISPLAY": true
+				"WP_DEBUG_DISPLAY": true,
+				"AUTOMATIC_UPDATER_DISABLED": true
 			}
 		},
 		{
@@ -23,6 +24,10 @@
 		{
 			"step": "runPHP",
 			"code": "<?php require '/wordpress/wp-load.php'; foreach ( [ 'page', 'post' ] as $type ) foreach ( glob( \"/e2e/fixtures/{$type}s/*.html\" ) as $file ) { wp_insert_post( [ 'post_type' => $type, 'post_status' => 'publish', 'post_name' => basename( $file, '.html' ), 'post_title' => ucwords( str_replace( '-', ' ', basename( $file, '.html' ) ) ), 'post_content' => file_get_contents( $file ) ] ); } flush_rewrite_rules();"
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; wp_insert_user( [ 'user_login' => 'editor', 'user_pass' => 'password', 'user_email' => 'editor@example.com', 'role' => 'editor' ] ); update_user_meta( get_user_by( 'login', 'admin' )->ID, WP_Application_Passwords::USERMETA_KEY_APPLICATION_PASSWORDS, [ [ 'uuid' => wp_generate_uuid4(), 'app_id' => '', 'name' => 'e2e automation', 'password' => wp_fast_hash( 'e2eautomationpassword000' ), 'created' => time(), 'last_used' => null, 'last_ip' => null ] ] ); update_site_option( 'using_application_passwords', true );"
 		}
 	]
 }

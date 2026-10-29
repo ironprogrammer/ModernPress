@@ -94,6 +94,12 @@
 		"test:e2e:wcag": "A11Y_BEST_PRACTICE=0 playwright test -c tests/e2e/playwright.config.js --grep @a11y",
 		"test:e2e:latest": "WP_VERSION=latest playwright test -c tests/e2e/playwright.config.js",
 		"test:e2e:beta": "WP_VERSION=beta playwright test -c tests/e2e/playwright.config.js",
+		"test:e2e:dev": "TEST_ENV=dev playwright test -c tests/e2e/playwright.config.js",
+		"test:e2e:staging": "TEST_ENV=staging playwright test -c tests/e2e/playwright.config.js",
+		"test:e2e:production": "TEST_ENV=production playwright test -c tests/e2e/playwright.config.js",
+		"test:e2e:lint": "node tests/e2e/scripts/lint-tests.js",
+		"test:e2e:cleanup": "QA_CLEANUP=1 playwright test -c tests/e2e/playwright.config.js",
+		"test:e2e:cleanup:apply": "QA_CLEANUP=1 QA_CLEANUP_APPLY=1 playwright test -c tests/e2e/playwright.config.js",
 		"test:e2e:server": "node tests/e2e/playground/server.js",
 		"test:e2e:server:latest": "WP_VERSION=latest node tests/e2e/playground/server.js",
 		"test:e2e:server:beta": "WP_VERSION=beta node tests/e2e/playground/server.js"
