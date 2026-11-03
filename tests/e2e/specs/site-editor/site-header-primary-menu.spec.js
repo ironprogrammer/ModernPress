@@ -4,7 +4,11 @@ const {
 	expectSameOriginLinksOk,
 	firstDropdown,
 } = require( '../../support/menus' );
-const { breakpoints, viewports } = require( '../../support/viewports' );
+const {
+	breakpoints,
+	viewports,
+	viewportTags,
+} = require( '../../support/viewports' );
 
 // The primary menu's navigation wrapper from parts/header.html. Mega menus nest further nav landmarks inside it.
 const primaryMenu = ( page ) =>
@@ -43,13 +47,15 @@ test(
 test.describe( () => {
 	test.use( { viewport: viewports.desktop } );
 
-	for ( const [ id, check ] of Object.entries( dropdownChecks ) ) {
+	for ( const [ id, expectBehavior ] of Object.entries( dropdownChecks ) ) {
 		test(
 			id,
 			{ tag: [ '@readonly', '@functional', '@a11y' ] },
 			async ( { page } ) => {
 				await page.goto( '/' );
-				await check( await firstDropdown( page, primaryMenu( page ) ) );
+				await expectBehavior(
+					await firstDropdown( page, primaryMenu( page ) )
+				);
 			}
 		);
 	}
@@ -61,7 +67,7 @@ for ( const name of [ 'mobile', 'mid' ] ) {
 
 		test(
 			`mobile-menu-opens-and-closes-at-${ name }`,
-			{ tag: [ '@readonly', '@functional' ] },
+			{ tag: [ '@readonly', '@functional', ...viewportTags( name ) ] },
 			async ( { page } ) => {
 				await page.goto( '/' );
 				await expect( firstItem( page ) ).toBeHidden();
@@ -76,7 +82,7 @@ for ( const name of [ 'mobile', 'mid' ] ) {
 
 		test(
 			`mobile-toggle-sets-aria-expanded-at-${ name }`,
-			{ tag: [ '@readonly', '@a11y' ] },
+			{ tag: [ '@readonly', '@a11y', ...viewportTags( name ) ] },
 			async ( { page } ) => {
 				await page.goto( '/' );
 				await expect( toggle( page ) ).toHaveAttribute(

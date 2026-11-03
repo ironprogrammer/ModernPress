@@ -12,6 +12,8 @@ const path = require( 'path' );
 const { styleText } = require( 'util' );
 const { parseOptionsAndRunCLI } = require( '@wp-playground/cli' );
 const pages = require( '../specs/pages' );
+const { blueprintStep: accountsStep } = require( './accounts' );
+const { steps, ...blueprintOptions } = require( './blueprint.json' );
 
 const ROOT = path.resolve( __dirname, '../../..' );
 
@@ -65,7 +67,8 @@ const freePort = ( port ) =>
 	fs.writeFileSync(
 		blueprint,
 		JSON.stringify( {
-			...require( './blueprint.json' ),
+			...blueprintOptions,
+			steps: [ ...steps, accountsStep ],
 			preferredVersions,
 		} )
 	);

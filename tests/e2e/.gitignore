@@ -2,5 +2,7 @@
 .report/
 .planning/
 .env
+.env.*
+!.env.example
 playwright/.auth/
 playwright/.ledger/

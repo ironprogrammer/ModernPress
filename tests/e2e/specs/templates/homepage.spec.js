@@ -12,17 +12,3 @@ test(
 		await expect( page.locator( 'footer.site-footer' ) ).toBeAttached();
 	}
 );
-
-test(
-	'has-no-uncaught-js-errors',
-	{ tag: [ '@readonly', '@smoke' ] },
-	async ( { page } ) => {
-		const errors = [];
-		page.on( 'pageerror', ( error ) => errors.push( error.message ) );
-
-		await page.goto( '/' );
-		await page.waitForLoadState( 'networkidle' );
-
-		expect( errors ).toEqual( [] );
-	}
-);

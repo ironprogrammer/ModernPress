@@ -15,8 +15,16 @@ const viewports = {
 		),
 		height,
 	},
-	// Same as the desktop projects in playwright.config.js.
+	// Same as the chromium projects in playwright.config.js.
 	desktop: { width: 1440, height },
 };
 
-module.exports = { breakpoints, viewports };
+/**
+ * Tags for a test at one of these viewports: tests at the mobile viewport also run on the emulated iPhone.
+ *
+ * @param {string} name Viewport name.
+ * @return {string[]} `[ '@mobile' ]` for the mobile viewport, otherwise none.
+ */
+const viewportTags = ( name ) => ( name === 'mobile' ? [ '@mobile' ] : [] );
+
+module.exports = { breakpoints, viewports, viewportTags };

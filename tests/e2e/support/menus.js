@@ -41,9 +41,6 @@ const nextFrames = ( page ) =>
 			)
 	);
 
-const focusIsInside = ( submenu ) =>
-	submenu.evaluate( ( el ) => el.contains( el.ownerDocument.activeElement ) );
-
 // Intended dropdown behavior (confirmed by the team, 2026-10-28): opens on click, not hover. Escape closes it and leaves
 // focus on the parent. Toggles report their state with aria-expanded. Arrow keys do nothing; only Tab moves focus.
 // Opening keeps focus on the parent, and the next Tab enters the sub-menu.
@@ -96,7 +93,7 @@ const dropdownChecks = {
 		await toggle.focus();
 		await page.keyboard.press( 'Enter' );
 		await page.keyboard.press( 'Tab' );
-		await expect.poll( () => focusIsInside( submenu ) ).toBe( true );
+		await expect( submenu.locator( ':focus' ) ).toHaveCount( 1 );
 
 		await page.keyboard.press( 'Escape' );
 		await expect( submenu ).toBeHidden();
@@ -119,7 +116,7 @@ const dropdownChecks = {
 		await page.keyboard.press( 'Enter' );
 		await expect( submenu ).toBeVisible();
 		await page.keyboard.press( 'Tab' );
-		await expect.poll( () => focusIsInside( submenu ) ).toBe( true );
+		await expect( submenu.locator( ':focus' ) ).toHaveCount( 1 );
 	},
 
 	'arrow-keys-do-not-control-dropdown': async ( {

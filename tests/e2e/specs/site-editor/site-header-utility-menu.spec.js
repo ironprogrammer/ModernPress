@@ -35,13 +35,15 @@ test(
 	}
 );
 
-for ( const [ id, check ] of Object.entries( dropdownChecks ) ) {
+for ( const [ id, expectBehavior ] of Object.entries( dropdownChecks ) ) {
 	test(
 		id,
 		{ tag: [ '@readonly', '@functional', '@a11y' ] },
 		async ( { page } ) => {
 			await page.goto( '/' );
-			await check( await firstDropdown( page, utilityMenu( page ) ) );
+			await expectBehavior(
+				await firstDropdown( page, utilityMenu( page ) )
+			);
 		}
 	);
 }

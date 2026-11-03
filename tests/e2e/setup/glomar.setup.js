@@ -7,7 +7,7 @@ setup( 'unlock Glomar access gate', async ( { page } ) => {
 
 	expect(
 		new URL( page.url() ).pathname,
-		'Redirected by the Glomar gate; check *_GLOMAR_QUERY in .env'
+		'Redirected by the Glomar gate; check GLOMAR_QUERY in .env.<TEST_ENV>'
 	).toBe( '/' );
 
 	await page.context().storageState( { path: glomarStatePath } );

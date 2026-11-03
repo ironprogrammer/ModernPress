@@ -1,5 +1,11 @@
 const { request } = require( '@playwright/test' );
-const { baseURL, glomarQuery, httpCredentials, testEnv } = require( './env' );
+const {
+	baseURL,
+	glomarQuery,
+	httpCredentials,
+	ignoreHTTPSErrors,
+	testEnv,
+} = require( './env' );
 
 /**
  * Prints the WordPress version the site actually runs, so results are never read against an assumed version.
@@ -7,7 +13,11 @@ const { baseURL, glomarQuery, httpCredentials, testEnv } = require( './env' );
  * @param {import('@playwright/test').FullConfig} config Playwright config.
  */
 module.exports = async ( config ) => {
-	const context = await request.newContext( { baseURL, httpCredentials } );
+	const context = await request.newContext( {
+		baseURL,
+		httpCredentials,
+		ignoreHTTPSErrors,
+	} );
 	const feed = await (
 		await context.get( glomarQuery ? `/feed/?${ glomarQuery }` : '/feed/' )
 	).text();

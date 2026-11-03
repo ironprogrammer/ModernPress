@@ -1,12 +1,9 @@
 const path = require( 'path' );
+const { accounts: playgroundAccounts } = require( './playground/accounts' );
 
-try {
-	process.loadEnvFile( path.join( __dirname, '.env' ) );
-} catch {
-	// No .env file; rely on the shell environment (e.g. CI).
-}
-
-const targets = [ 'playground', 'dev', 'staging', 'production' ];
+// playground boots a fresh local site. Every other target is an existing site configured in its own .env.<target>:
+// local for a throwaway site you run (Lando, a review app), dev/staging/production for the shared ones.
+const targets = [ 'playground', 'local', 'dev', 'staging', 'production' ];
 const testEnv = process.env.TEST_ENV || 'playground';
 
 if ( ! targets.includes( testEnv ) ) {
@@ -17,27 +14,40 @@ if ( ! targets.includes( testEnv ) ) {
 	);
 }
 
+const isPlayground = testEnv === 'playground';
 const isProduction = testEnv === 'production';
-// Dev, Staging, and Production are shared sites; tests treat them with more care than a throwaway one.
-const isLive = testEnv !== 'playground';
-const prefix = testEnv.toUpperCase();
+
+if ( ! isPlayground ) {
+	try {
+		process.loadEnvFile( path.join( __dirname, `.env.${ testEnv }` ) );
+	} catch {
+		// No file; rely on the shell environment (e.g. CI).
+	}
+}
 
 // Not 9400: browsing sites from test:e2e:server take that first.
 const port = process.env.E2E_PORT || 9500;
-// WP_BASE_URL points the playground target at another throwaway site (Lando, a review app) instead.
-const bootsPlayground = ! isLive && ! process.env.WP_BASE_URL;
-const baseURL = isLive
-	? process.env[ `${ prefix }_BASE_URL` ]
-	: process.env.WP_BASE_URL || `http://127.0.0.1:${ port }`;
+const baseURL = isPlayground
+	? `http://127.0.0.1:${ port }`
+	: process.env.BASE_URL;
 
 if ( ! baseURL ) {
 	throw new Error(
-		`No base URL for TEST_ENV="${ testEnv }". Set ${ prefix }_BASE_URL in tests/e2e/.env.`
+		`No BASE_URL for TEST_ENV="${ testEnv }". Copy tests/e2e/.env.example to tests/e2e/.env.${ testEnv } and fill it in.`
+	);
+}
+
+// Local sites often serve self-signed certificates (Lando, Local). Never allowed for shared sites.
+const ignoreHTTPSErrors = process.env.IGNORE_HTTPS_ERRORS === '1';
+
+if ( ignoreHTTPSErrors && testEnv !== 'local' ) {
+	throw new Error(
+		'IGNORE_HTTPS_ERRORS=1 is only allowed with TEST_ENV=local.'
 	);
 }
 
 // Query string that unlocks the Glomar access gate, e.g. "secret=1". Empty when the site has no gate.
-const glomarQuery = process.env[ `${ prefix }_GLOMAR_QUERY` ] ?? '';
+const glomarQuery = ( ! isPlayground && process.env.GLOMAR_QUERY ) || '';
 
 const authDir = path.join( __dirname, 'playwright/.auth', testEnv );
 const glomarStatePath = path.join( authDir, 'glomar.json' );
@@ -50,16 +60,9 @@ const glomarStatePath = path.join( authDir, 'glomar.json' );
  */
 const roleStatePath = ( role ) => path.join( authDir, `${ role }.json` );
 
-// Accounts playground/blueprint.json creates. Not secrets: the site is local and discarded after the run.
-const playgroundAccounts = {
-	administrator: { username: 'admin', password: 'password' },
-	editor: { username: 'editor', password: 'password' },
-	automation: { username: 'admin', password: 'e2eautomationpassword000' },
-};
-
 // Production never logs in: no accounts exist there for testing.
 let roles = [];
-if ( bootsPlayground ) {
+if ( isPlayground ) {
 	roles = [ 'administrator', 'editor' ];
 } else if ( ! isProduction ) {
 	roles = ( process.env.QA_ROLES ?? '' )
@@ -92,7 +95,7 @@ const fromEnv = ( userVar, passwordVar ) => {
  * @return {{username?: string, password?: string, missing: string[]}} Credentials, or the variables that are unset.
  */
 const credentials = ( role ) => {
-	if ( bootsPlayground ) {
+	if ( isPlayground ) {
 		return { ...playgroundAccounts[ role ], missing: [] };
 	}
 
@@ -106,7 +109,7 @@ const credentials = ( role ) => {
  * @return {{username?: string, password?: string, missing: string[]}} Credentials, or the variables that are unset.
  */
 const automationCredentials = () =>
-	bootsPlayground
+	isPlayground
 		? { ...playgroundAccounts.automation, missing: [] }
 		: fromEnv( 'QA_AUTOMATION_USER', 'QA_AUTOMATION_APP_PASSWORD' );
 
@@ -134,9 +137,8 @@ const httpCredentials = process.env.HTTP_USERNAME
 module.exports = {
 	testEnv,
 	isProduction,
-	isLive,
+	isPlayground,
 	port,
-	bootsPlayground,
 	baseURL,
 	glomarQuery,
 	glomarStatePath,
@@ -147,4 +149,5 @@ module.exports = {
 	runId,
 	ledgerPath,
 	httpCredentials,
+	ignoreHTTPSErrors,
 };

@@ -1,6 +1,6 @@
 const { test, expect } = require( '../../support/test' );
-const { expectNoSeriousA11yIssues } = require( '../../support/a11y' );
-const { viewports } = require( '../../support/viewports' );
+const { expectNoAxeViolations } = require( '../../support/a11y' );
+const { viewports, viewportTags } = require( '../../support/viewports' );
 
 const header = 'header.site-header';
 const announcement = '.b-announcement';
@@ -46,16 +46,14 @@ for ( const [ name, viewport ] of Object.entries( viewports ) ) {
 
 		test(
 			`mobile-toggle-${ shown ? 'shown' : 'hidden' }-at-${ name }`,
-			{ tag: [ '@readonly', '@functional' ] },
+			{ tag: [ '@readonly', '@functional', ...viewportTags( name ) ] },
 			async ( { page } ) => {
 				await page.goto( '/' );
 
 				const toggle = page
 					.locator( header )
 					.getByRole( 'button', { name: 'Toggle Mobile Menu' } );
-				await ( shown
-					? expect( toggle ).toBeVisible()
-					: expect( toggle ).toBeHidden() );
+				await expect( toggle ).toBeVisible( { visible: shown } );
 			}
 		);
 	} );
@@ -66,15 +64,16 @@ for ( const name of [ 'mobile', 'desktop' ] ) {
 		test.use( { viewport: viewports[ name ] } );
 
 		test(
-			`header-has-no-serious-a11y-issues-at-${ name }`,
-			{ tag: [ '@readonly', '@a11y' ] },
+			`header-has-no-axe-violations-at-${ name }`,
+			{ tag: [ '@readonly', '@a11y', ...viewportTags( name ) ] },
 			async ( { page } ) => {
 				await page.goto( '/' );
 
 				// Announcements render inside the banner but are separate content with their own topic.
-				await expectNoSeriousA11yIssues( page, header, [
-					announcement,
-				] );
+				await expectNoAxeViolations( page, {
+					include: header,
+					exclude: [ announcement ],
+				} );
 			}
 		);
 	} );

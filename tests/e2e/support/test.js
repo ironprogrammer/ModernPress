@@ -1,5 +1,3 @@
-// Playwright fixtures call use(), which the React hooks rule mistakes for React's use().
-/* eslint-disable react-hooks/rules-of-hooks */
 const base = require( '@playwright/test' );
 const {
 	automationCredentials,

@@ -1,5 +1,5 @@
 const { test, expect } = require( '../../support/test' );
-const { credentials, roles } = require( '../../env' );
+const { roles } = require( '../../env' );
 const {
 	adminPath,
 	expectLoggedIn,
@@ -49,20 +49,19 @@ test(
 	}
 );
 
-for ( const role of roles.length ? roles : [ '' ] ) {
-	test(
-		`valid-credentials-reach-admin${ role ? ` (${ role })` : '' }`,
-		{ tag: [ '@readonly', '@smoke', '@requires-account' ] },
-		async ( { page } ) => {
-			test.skip( ! role, 'No roles configured: set QA_ROLES in .env' );
-			const { username, password, missing } = credentials( role );
-			test.skip(
-				! username,
-				`No credentials for ${ role }: set ${ missing.join( ' and ' ) }`
-			);
+// auth-setup logs each role in once; this checks the saved session works, without logging in again.
+for ( const role of roles ) {
+	test.describe( () => {
+		test.use( { role } );
 
-			await submitLogin( page, username, password );
-			await expectLoggedIn( page );
-		}
-	);
+		test(
+			`saved-session-reaches-admin (${ role })`,
+			{ tag: [ '@readonly', '@smoke', '@requires-account' ] },
+			async ( { page } ) => {
+				await page.goto( adminPath );
+
+				await expectLoggedIn( page );
+			}
+		);
+	} );
 }

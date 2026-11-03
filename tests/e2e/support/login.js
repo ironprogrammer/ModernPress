@@ -28,7 +28,19 @@ const submitLogin = async ( page, username, password ) => {
 	await page.goto( loginPath );
 	await expectNoBotChallenge( page );
 
-	await page.getByLabel( 'Username or Email Address' ).fill( username );
+	// wp-login.php moves focus to the username field 200ms after load, which can divert typing already under way.
+	// Wait for it when the page calls it (a filter can turn it off). Locator text matching skips <script>.
+	const usernameField = page.getByLabel( 'Username or Email Address' );
+	const autofocuses = await page.evaluate( () =>
+		[ ...document.scripts ].some( ( script ) =>
+			script.textContent.includes( 'wp_attempt_focus();' )
+		)
+	);
+	if ( autofocuses ) {
+		await expect( usernameField ).toBeFocused();
+	}
+
+	await usernameField.fill( username );
 	await page.getByLabel( 'Password', { exact: true } ).fill( password );
 	await page.getByRole( 'button', { name: 'Log In' } ).click();
 };

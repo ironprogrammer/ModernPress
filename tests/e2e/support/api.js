@@ -5,6 +5,7 @@ const {
 	automationCredentials,
 	baseURL,
 	httpCredentials,
+	ignoreHTTPSErrors,
 	isProduction,
 	ledgerPath,
 	runId,
@@ -102,6 +103,7 @@ class ApiClient {
 		const context = await request.newContext( {
 			baseURL: `${ baseURL }/wp-json/wp/v2/`,
 			httpCredentials,
+			ignoreHTTPSErrors,
 			extraHTTPHeaders: { Authorization: `Basic ${ token }` },
 		} );
 		return new ApiClient( context );
