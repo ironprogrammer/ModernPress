@@ -1,3 +1,6 @@
+/**
+ * An unknown URL returns a 404 status and shows the search form.
+ */
 const { test, expect } = require( '../../support/test' );
 
 // The 404 template's recovery path is a search form; its heading and copy are editable, so assert structure only.

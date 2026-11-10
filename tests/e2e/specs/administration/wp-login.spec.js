@@ -1,3 +1,6 @@
+/**
+ * WordPress login: the redirect for logged-out visitors, the wrong-password error, and a saved session for each role.
+ */
 const { test, expect } = require( '../../support/test' );
 const { roles } = require( '../../env' );
 const {
@@ -22,10 +25,16 @@ test(
 	}
 );
 
-// Mutating: a failed login can change security counters. One attempt only.
 test(
 	'wrong-password-shows-error',
-	{ tag: [ '@mutating', '@functional' ] },
+	{
+		tag: [ '@mutating', '@functional' ],
+		annotation: {
+			type: 'description',
+			description:
+				'Submits one wrong password and checks the error. Mutating: a failed login can change security counters, so it makes one attempt only.',
+		},
+	},
 	async ( { page } ) => {
 		let loginPosts = 0;
 		page.on( 'request', ( request ) => {

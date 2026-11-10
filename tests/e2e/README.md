@@ -59,9 +59,18 @@ Then, from the repo root:
 | `npm run test:e2e:wcag` | Accessibility tests, WCAG only |
 | `npm run test:e2e:latest` | Everything, on the latest stable WordPress instead of the version in `composer.json` |
 | `npm run test:e2e:beta` | Everything, on the current WordPress beta or RC |
-| `npm run test:e2e:lint` | ESLint with WordPress's Playwright rules (no `.only`, no fixed waits), and a check that every test has one safety tag. Run before pushing |
+| `npm run test:e2e:lint` | ESLint with WordPress's Playwright rules (no `.only`, no fixed waits), plus `scripts/lint-specs.js`: every test has one safety tag and every spec opens with a summary comment. Run before pushing |
+| `npm run test:e2e:coverage` | Writes the coverage map to `tests/e2e/.coverage/index.html`: every spec and test by category, with filters, and where each test runs. Lists the suite without running it |
 
 Each run prints the WordPress version the site actually runs. Accessibility failures are labeled with their WCAG criteria or as a best practice. Failed tests attach axe's full results as `axe-results`. Results land in `tests/e2e/.results/`, and `npx playwright show-report tests/e2e/.report` opens the HTML report.
+
+## Coverage map
+
+`npm run test:e2e:coverage` writes `tests/e2e/.coverage/index.html`, a single page listing every spec and test by category, with filters, and where each test runs. Open it in a browser; it needs nothing else. It lists the suite without running it or contacting any site. The file is git-ignored and doesn't update itself, so rerun the command after specs change.
+
+- Each spec's summary comes from the `/** … */` comment at the top of the file, and a test's note from its `description` annotation.
+- Playground and Production are always listed. Dev and Staging are listed only when their `.env.<target>` file exists.
+- The page header shows the site name, `ModernPress Framework` by default. A client site sets its own: `npm run test:e2e:coverage -- --site-name "Client Name"`. `--out <path>` writes the page somewhere else.
 
 ## Browsing the test site
 

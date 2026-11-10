@@ -1,3 +1,6 @@
+/**
+ * The homepage returns 200 and has the main site landmarks.
+ */
 const { test, expect } = require( '../../support/test' );
 
 test(

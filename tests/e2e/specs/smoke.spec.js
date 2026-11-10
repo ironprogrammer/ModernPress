@@ -1,3 +1,6 @@
+/**
+ * Loads every page in pages.js and checks its status code, with no PHP errors, console errors or failed requests.
+ */
 const { test, expect } = require( '../support/test' );
 const pages = require( './pages' );
 

@@ -1,5 +1,6 @@
 .results/
 .report/
+.coverage/
 .planning/
 .env
 .env.*

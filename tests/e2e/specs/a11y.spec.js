@@ -1,3 +1,6 @@
+/**
+ * Scans every page in pages.js with axe: WCAG 2.x A/AA plus best practices.
+ */
 const { test } = require( '../support/test' );
 const { expectNoAxeViolations } = require( '../support/a11y' );
 const pages = require( './pages' );

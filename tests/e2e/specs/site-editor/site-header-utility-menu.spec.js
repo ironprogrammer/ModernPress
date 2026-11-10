@@ -1,3 +1,6 @@
+/**
+ * Utility menu: accessible name, working links, and the agreed dropdown keyboard behavior.
+ */
 const { test, expect } = require( '../../support/test' );
 const {
 	dropdownChecks,

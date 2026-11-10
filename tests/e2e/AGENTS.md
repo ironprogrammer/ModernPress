@@ -27,6 +27,7 @@ Applies to work under `tests/e2e/`. The person working here is a QA engineer; tr
 
 - The QA Automation Planner (https://docs.google.com/spreadsheets/d/1-pUY-ERPRWNSq-vQc6Im7S8GtqKsN00glyMHsW2vnIc/edit?gid=1030867211, private; ask for a CSV export) is the test inventory: one row per topic with its category, priority, Automate?, test type, safety, content approach, and requirements. Check a topic's row before writing its tests. Treat the Notes column as hints, not facts: verify against the real site, Learn ModernPress, and the theme code.
 - Specs live in `specs/<category>/<topic>.spec.js`. The folder is the planner's Category (Folders) value; where it disagrees with the theme code, the planner wins. The file name is the planner's Topic lowercased, with every run of non-alphanumerics replaced by one hyphen (`Media & Text` → `media-text`, `Site Header - Primary Menu` → `site-header-primary-menu`). A test that covers several topics lives with the highest-priority one; mention it in the other topics' notes.
+- Every spec opens with a `/** … */` comment summarizing what it covers, in one or two sentences; `npm run test:e2e:lint` enforces it. The coverage map (`npm run test:e2e:coverage`) shows it under the spec. A test may add a `description` annotation (`{ annotation: { type: 'description', description: '…' } }`) when its title doesn't explain it, such as why it's `@mutating`.
 - Import `test` and `expect` from `support/test.js`.
 - `specs/smoke.spec.js` and `specs/a11y.spec.js` run page-level checks on every page in `specs/pages.js`, in `chromium` and `webkit-mobile`. Pages marked `fixture` exist only on Playground; `pages.js` leaves them out elsewhere.
 - Tags come from the planner row: its Test type, plus `@readonly` or `@mutating` per test (a "Both" row has some of each). A test that logs in adds `@requires-account`. A test of phone behavior adds `@mobile`, which also runs it on the emulated iPhone (`webkit-mobile`); keep its `viewports.mobile` so it checks the same width in Chromium. Leave hover, arrow-key, and in-between-width tests in Chromium only.
@@ -68,6 +69,10 @@ The core plugin loads `vendor/autoload.php` and crashes on boot without it. Run 
 ### `composer create-auth` with several 1Password accounts
 
 `op` fails with "multiple accounts found" when you're signed in to more than one account. Pick the Modern Tribe one: `OP_ACCOUNT=moderntribe.1password.com composer create-auth`.
+
+### Put paths before `--fix` in `wp-scripts lint-js`
+
+`wp-scripts` reads the word after a flag as that flag's value, so `lint-js --fix some/file.js` sees no path and lints (and fixes) the whole repo, including `wp-content/plugins/`. Put paths first: `npx wp-scripts lint-js --config tests/e2e/eslint.config.js tests/e2e --fix`. `npm run test:e2e:lint -- --fix` doesn't work either, because npm passes the extra argument to `lint-specs.js`.
 
 ## Git
 

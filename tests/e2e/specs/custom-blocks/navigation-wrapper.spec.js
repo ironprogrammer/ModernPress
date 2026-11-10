@@ -1,3 +1,6 @@
+/**
+ * Every navigation landmark has an accessible name, on the homepage and the 404 page.
+ */
 const { test, expect } = require( '../../support/test' );
 
 const pages = { homepage: '/', 404: '/e2e-this-page-should-not-exist/' };

@@ -1,3 +1,6 @@
+/**
+ * Site header: logo link, landmark names, the mobile toggle at each width, and an axe scan of the header.
+ */
 const { test, expect } = require( '../../support/test' );
 const { expectNoAxeViolations } = require( '../../support/a11y' );
 const { viewports, viewportTags } = require( '../../support/viewports' );

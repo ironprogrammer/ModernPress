@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E2E Test Coverage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Page template for scripts/coverage.js, which fills in the data. Dark by default, with a light mode toggle. */
+:root {
+	--bg: #0e1319;
+	--surface: #151c24;
+	--sunken: #1c2530;
+	--fg: #e4e9ef;
+	--muted: #95a1b0;
+	--line: #29333f;
+	--accent: #5fc0c7;
+	--accent-weak: #133539;
+	--on-accent: #0b1a1c;
+	--ok: #72cd96;
+	--ok-weak: #15301f;
+	--warn: #eeb35c;
+	--warn-weak: #362712;
+	--bad: #f08e86;
+	--bad-weak: #3a1c1a;
+	--sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+	--radius: 6px;
+	color-scheme: dark;
+}
+:root[data-mode="light"] {
+	--bg: #f5f6f8; --surface: #ffffff; --sunken: #eceff3; --fg: #18212c; --muted: #5a6676; --line: #dce1e8;
+	--accent: #0e6a73; --accent-weak: #ddeff0; --on-accent: #ffffff; --ok: #2c7a4b; --ok-weak: #e1f1e7;
+	--warn: #9a5a00; --warn-weak: #f8ecd9; --bad: #b0291f; --bad-weak: #f9e1df;
+	color-scheme: light;
+}
+* { box-sizing: border-box; }
+body {
+	margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 14px; line-height: 1.45;
+	padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+	padding-block: 20px max(160px, 40vh);
+}
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 16px; }
+h1 { font-size: 22px; font-weight: 600; margin: 0; text-wrap: balance; display: flex; align-items: center; gap: 10px; }
+.brand { width: 29px; height: 22px; flex: none; fill: currentColor; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code { font-family: var(--mono); font-size: 12.5px; }
+[hidden] { display: none !important; }
+
+.top { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; align-items: start; }
+.site-name { display: block; margin-bottom: 10px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.top p { margin: 10px 0 0; color: var(--muted); max-width: 100ch; }
+.mode { display: inline-flex; gap: 2px; padding: 3px; }
+.mode svg { width: 28px; height: 26px; padding: 5px 6px; border-radius: 4px; fill: none; stroke: var(--muted); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.mode .moon, :root[data-mode="light"] .mode .sun { background: var(--accent-weak); stroke: var(--accent); }
+:root[data-mode="light"] .mode .moon { background: none; stroke: var(--muted); }
+.btn.mode[aria-pressed] { background: var(--surface); border-color: var(--line); color: inherit; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.stat { display: grid; gap: 2px; padding: 14px 16px; box-shadow: -1px 0 0 var(--line), 0 -1px 0 var(--line); }
+.stat b { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 12px; }
+.stat.lead b { color: var(--accent); }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.search { flex: 1 1 240px; min-width: 0; position: relative; }
+.search input { width: 100%; padding: 8px 10px 8px 32px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; stroke: var(--muted); fill: none; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); padding: 7px 10px; white-space: nowrap; }
+.btn:hover { border-color: var(--muted); }
+select.btn { padding-right: 6px; }
+.toolbar .sep { flex: 0 0 1px; align-self: stretch; background: var(--line); }
+
+.fbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.fpick { position: relative; }
+.fpick > .btn { display: inline-flex; gap: 6px; align-items: center; }
+.fpick > .btn .count { background: var(--accent); color: var(--on-accent); border-radius: 9px; padding: 0 6px; font-size: 11px; font-weight: 600; }
+.chev { width: 10px; height: 10px; stroke: var(--muted); fill: none; transition: transform .15s; }
+[aria-expanded="false"] .chev { transform: rotate(-90deg); }
+.pop { position: absolute; z-index: 5; top: calc(100% + 4px); left: 0; width: min(290px, calc(100vw - 32px)); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 10px 28px rgba(0, 0, 0, .5); padding: 6px; }
+.pop ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; max-height: 320px; overflow: auto; }
+.opt { display: flex; gap: 8px; align-items: center; padding: 4px 6px; border-radius: 4px; cursor: pointer; }
+.opt:hover { background: var(--sunken); }
+.opt input { accent-color: var(--accent); margin: 0; }
+.opt .lbl { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.opt .n { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
+.opt.zero { opacity: .45; }
+.active { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip-x { display: inline-flex; gap: 6px; align-items: center; border: 1px solid var(--accent); background: var(--accent-weak); color: var(--accent); border-radius: 14px; padding: 3px 6px 3px 10px; font-size: 12.5px; }
+.chip-x span { color: var(--muted); }
+.chip-x button { all: unset; cursor: pointer; width: 16px; height: 16px; display: grid; place-items: center; border-radius: 50%; }
+.chip-x button:hover, .chip-x button:focus-visible { background: var(--accent); color: var(--on-accent); }
+.linkbtn { all: unset; cursor: pointer; color: var(--accent); font-weight: 500; padding: 2px 4px; }
+.linkbtn:focus-visible { outline: 2px solid var(--accent); }
+
+.tree { display: grid; gap: 20px; min-width: 0; }
+.showing { color: var(--muted); }
+details.cat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+details > summary { list-style: none; cursor: pointer; }
+details > summary::-webkit-details-marker { display: none; }
+.cat > summary { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; padding: 12px 14px; }
+.cat > summary .name { font-weight: 600; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+.cat > summary .meta { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.cat > summary .bars { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; }
+.cat[open] > summary { border-bottom: 1px solid var(--line); }
+.cat > summary:hover, .spec > summary:hover { background: var(--sunken); }
+.tri { width: 10px; height: 10px; stroke: var(--muted); fill: none; transition: transform .15s; flex: none; }
+details:not([open]) > summary .tri { transform: rotate(-90deg); }
+.spec { border-top: 1px solid var(--line); }
+.spec:first-child { border-top: 0; }
+.spec > summary { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 2px 10px; padding: 10px 14px; align-items: baseline; }
+.file { font-family: var(--mono); font-weight: 500; overflow-wrap: anywhere; }
+.sum { grid-column: 2 / 4; color: var(--muted); }
+.spec-n { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12.5px; white-space: nowrap; }
+.spec-n .bugs { color: var(--bad); }
+.tests { list-style: none; margin: 0; padding: 0 14px 12px 34px; display: grid; }
+.test { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding: 9px 0; border-top: 1px dashed var(--line); }
+.test:first-child { border-top: 0; }
+.test .title { font-family: var(--mono); font-size: 13px; overflow-wrap: anywhere; }
+.test .desc, .test .known-note { grid-column: 1 / 3; }
+.test .desc { color: var(--muted); }
+.test .known-note { font-size: 12.5px; color: var(--bad); }
+.test .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.test .where { grid-row: 1 / 3; grid-column: 2; display: grid; gap: 4px; justify-items: end; align-content: start; }
+.test .loc { color: var(--muted); font-family: var(--mono); font-size: 11.5px; }
+.chip { display: inline-flex; align-items: center; font-size: 11.5px; border-radius: 3px; padding: 1px 6px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip-n { opacity: .7; font-variant-numeric: tabular-nums; }
+.chip.readonly { color: var(--ok); background: var(--ok-weak); border-color: transparent; }
+.chip.mutating { color: var(--warn); background: var(--warn-weak); border-color: transparent; }
+.chip.login { color: var(--accent); background: var(--accent-weak); border-color: transparent; }
+.chip.known { color: var(--bad); background: var(--bad-weak); border-color: transparent; font-weight: 500; }
+.runs { display: inline-flex; gap: 6px; align-items: center; font-size: 11.5px; color: var(--muted); }
+.sites { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.sites span { font-size: 11px; padding: 1px 6px; color: var(--muted); opacity: .4; text-decoration: line-through; }
+.sites span + span { border-left: 1px solid var(--line); }
+.sites span.on { opacity: 1; text-decoration: none; color: var(--fg); background: var(--sunken); }
+.projects { font-size: 11.5px; color: var(--muted); font-family: var(--mono); text-align: right; }
+.empty { padding: 32px; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: var(--radius); }
+.foot { color: var(--muted); font-size: 12.5px; }
+
+@media (max-width: 560px) {
+	.test { grid-template-columns: minmax(0, 1fr); }
+	.test .where { grid-row: auto; grid-column: 1; justify-items: start; }
+	.test .desc, .test .known-note { grid-column: 1; }
+	.tests { padding-left: 14px; }
+	.cat > summary .bars { margin-left: 0; }
+	.projects { text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) { .chev, .tri { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+	<header class="top">
+		<div>
+			<span class="site-name" id="site-name" hidden></span>
+			<h1><svg class="brand" viewBox="0 0 33 25" aria-hidden="true"><path d="M6.11048 0.485352L0.318269 23.3733L0.0390625 24.5153H32.079L25.9638 0.49269L16.046 9.32184L6.11048 0.485352ZM7.15148 3.86942L14.6884 10.5725L2.78473 21.1241L7.15148 3.86942ZM17.4296 10.5497L24.9269 3.87513L29.3059 21.0774L17.4296 10.5497ZM16.0718 11.801L28.3458 22.6805H3.79773L16.0718 11.801Z"/></svg>ModernPress E2E Test Coverage</h1>
+			<p>Everything our automated tests check on a ModernPress site, and which environments and browsers each test runs on.</p>
+		</div>
+		<button class="btn mode" id="mode" type="button" aria-pressed="false" aria-label="Light mode" title="Switch between dark and light mode">
+			<svg class="moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 9.6A5.5 5.5 0 0 1 6.4 2.5a5.5 5.5 0 1 0 7.1 7.1z"/></svg>
+			<svg class="sun" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M3.05 12.95l1.06-1.06M11.89 4.11l1.06-1.06"/></svg>
+		</button>
+	</header>
+	<section class="stats" id="stats" aria-label="Summary"></section>
+	<main id="view"></main>
+	<footer class="foot" id="foot"></footer>
+</div>
+
+<script>
+const DATA = /* DATA */ null;
+
+const TYPES = [ 'smoke', 'functional', 'a11y', 'visual' ];
+const ENVS = DATA.environments;
+const envName = ( k ) => ENVS.find( ( e ) => e.key === k )?.label ?? k;
+const catName = ( k ) => DATA.categories[ k ] ?? k;
+
+const tests = DATA.tests.map( ( t ) => {
+	const slash = t.file.lastIndexOf( '/' );
+	return {
+		...t,
+		cat: slash === -1 ? '' : t.file.slice( 0, slash ),
+		types: t.tags.filter( ( tag ) => TYPES.includes( tag ) ),
+		safety: t.tags.includes( 'mutating' ) ? 'mutating' : 'readonly',
+		login: t.tags.includes( 'requires-account' ),
+		envs: ENVS.map( ( e ) => e.key ).filter( ( k ) => t.runs[ k ] ),
+		projects: [ ...new Set( Object.values( t.runs ).flat() ) ],
+	};
+} );
+const hasKnownBugs = tests.some( ( t ) => t.known );
+
+const FACETS = [
+	{ key: 'cat', label: 'Category', values: ( t ) => [ t.cat ], name: catName },
+	{ key: 'spec', label: 'Spec', values: ( t ) => [ t.file ], name: ( v ) => v.split( '/' ).pop().replace( '.spec.js', '' ) },
+	{ key: 'type', label: 'Type', values: ( t ) => t.types, name: ( v ) => '@' + v, all: TYPES },
+	{ key: 'safety', label: 'Safety', values: ( t ) => [ t.safety ], name: ( v ) => '@' + v, all: [ 'readonly', 'mutating' ] },
+	{ key: 'login', label: 'Account', values: ( t ) => [ t.login ? 'yes' : 'no' ], name: ( v ) => ( v === 'yes' ? 'Needs an account' : 'No login' ), all: [ 'yes', 'no' ] },
+	{ key: 'env', label: 'Environment', values: ( t ) => t.envs, name: envName, all: ENVS.map( ( e ) => e.key ) },
+	{ key: 'project', label: 'Project', values: ( t ) => t.projects, name: ( v ) => ( v === 'webkit-mobile' ? 'webkit-mobile (iPhone)' : v ) },
+	hasKnownBugs && { key: 'known', label: 'Known bug', values: ( t ) => [ t.known ? 'yes' : 'no' ], name: ( v ) => ( v === 'yes' ? 'Yes' : 'No' ), all: [ 'yes', 'no' ] },
+].filter( Boolean );
+for ( const f of FACETS ) {
+	f.all ??= [ ...new Set( tests.flatMap( f.values ) ) ];
+}
+
+const state = {
+	q: '', sort: 'file', pop: null,
+	sel: Object.fromEntries( FACETS.map( ( f ) => [ f.key, new Set() ] ) ),
+	openCats: new Set( tests.map( ( t ) => t.cat ) ), openSpecs: new Set(),
+};
+
+const esc = ( s ) => String( s ).replace( /[&<>"]/g, ( c ) => ( { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ c ] ) );
+const plural = ( n, word ) => `${ n } ${ word }${ n === 1 ? '' : 's' }`;
+const matchesQuery = ( t ) => {
+	if ( ! state.q ) return true;
+	const q = state.q.toLowerCase();
+	return [ t.title, t.desc, t.file, DATA.specs[ t.file ], t.known?.reason, t.known?.ticket ].some( ( s ) => s && s.toLowerCase().includes( q ) );
+};
+const passes = ( t, skip ) => matchesQuery( t ) && FACETS.every( ( f ) => f.key === skip || ! state.sel[ f.key ].size || f.values( t ).some( ( v ) => state.sel[ f.key ].has( v ) ) );
+const facetCount = ( f, v ) => tests.filter( ( t ) => passes( t, f.key ) && f.values( t ).includes( v ) ).length;
+
+function renderStats( list ) {
+	const n = ( fn ) => list.filter( fn ).length;
+	const items = [
+		[ list.length, list.length === tests.length ? 'tests' : `of ${ tests.length } tests`, 'lead' ],
+		[ new Set( list.map( ( t ) => t.file ) ).size, 'specs' ],
+		[ new Set( list.map( ( t ) => t.cat ) ).size, 'categories' ],
+		[ n( ( t ) => t.safety === 'readonly' ), 'read-only' ],
+		[ n( ( t ) => t.safety === 'mutating' ), 'mutating' ],
+		[ n( ( t ) => t.projects.includes( 'chromium' ) ), 'Chromium' ],
+		[ n( ( t ) => t.projects.includes( 'webkit-mobile' ) ), 'iPhone' ],
+		[ n( ( t ) => t.login ), 'Account' ],
+		hasKnownBugs && [ n( ( t ) => t.known ), 'known bugs' ],
+	].filter( Boolean );
+	document.getElementById( 'stats' ).innerHTML = items.map( ( [ v, l, c ] ) => `<div class="stat ${ c || '' }"><b>${ v }</b><span>${ l }</span></div>` ).join( '' );
+}
+
+function optionList( f ) {
+	return `<ul>${ f.all.map( ( v ) => {
+		const c = facetCount( f, v );
+		const checked = state.sel[ f.key ].has( v );
+		const id = `f-${ f.key }-${ String( v ).replace( /[^a-z0-9]/gi, '_' ) }`;
+		return `<li><label class="opt ${ c || checked ? '' : 'zero' }" for="${ id }"><input type="checkbox" id="${ id }" data-facet="${ f.key }" data-value="${ esc( v ) }" ${ checked ? 'checked' : '' }><span class="lbl">${ esc( f.name( v ) ) }</span><span class="n">${ c }</span></label></li>`;
+	} ).join( '' ) }</ul>`;
+}
+
+function toolbar() {
+	return `<div class="toolbar">
+		<label class="search"><svg viewBox="0 0 16 16" stroke-width="1.6" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5"/></svg><input id="q" type="search" placeholder="Search titles, summaries, files" value="${ esc( state.q ) }" aria-label="Search tests"></label>
+		<select class="btn" id="sort" aria-label="Sort">
+			<option value="file" ${ state.sort === 'file' ? 'selected' : '' }>Sort: file order</option>
+			<option value="name" ${ state.sort === 'name' ? 'selected' : '' }>Sort: name A–Z</option>
+			<option value="count" ${ state.sort === 'count' ? 'selected' : '' }>Sort: most tests</option>
+		</select>
+		<span class="sep" aria-hidden="true"></span>
+		<button class="btn" data-act="expand">Expand all</button>
+		<button class="btn" data-act="collapse">Collapse all</button>
+	</div>`;
+}
+
+function filterBar() {
+	const chips = FACETS.flatMap( ( f ) => [ ...state.sel[ f.key ] ].map( ( v ) => `<span class="chip-x"><span>${ f.label }:</span>${ esc( f.name( v ) ) }<button data-act="remove" data-facet="${ f.key }" data-value="${ esc( v ) }" aria-label="Remove ${ esc( f.label ) } ${ esc( f.name( v ) ) }">✕</button></span>` ) );
+	return `<div class="fbar" role="group" aria-label="Filters">${ FACETS.map( ( f ) => {
+		const n = state.sel[ f.key ].size;
+		const open = state.pop === f.key;
+		return `<div class="fpick"><button class="btn" data-act="pop" data-key="${ f.key }" aria-expanded="${ open }">${ f.label }${ n ? ` <span class="count">${ n }</span>` : '' }<svg class="chev" viewBox="0 0 10 10" stroke-width="1.6" aria-hidden="true"><path d="M2 3.5l3 3 3-3"/></svg></button>${ open ? `<div class="pop">${ optionList( f ) }</div>` : '' }</div>`;
+	} ).join( '' ) }</div>
+	${ chips.length ? `<div class="active">${ chips.join( '' ) }<button class="linkbtn" data-act="clear">Clear all</button></div>` : '' }`;
+}
+
+function envCell( t ) {
+	return `<span class="runs">Runs on <span class="sites">${ ENVS.map( ( { key, label, short } ) => `<span class="${ t.runs[ key ] ? 'on' : '' }" title="${ label }: ${ t.runs[ key ] ? t.runs[ key ].join( ', ' ) : 'does not run here' }">${ short }</span>` ).join( '' ) }</span></span>`;
+}
+
+function testRow( t ) {
+	const tags = [
+		...t.types.map( ( v ) => `<span class="chip">@${ v }</span>` ),
+		`<span class="chip ${ t.safety }">@${ t.safety }</span>`,
+		t.tags.includes( 'mobile' ) ? '<span class="chip">@mobile</span>' : '',
+		t.login ? '<span class="chip login">@requires-account</span>' : '',
+		t.known ? `<span class="chip known">${ t.known.ticket ? esc( t.known.ticket ) : 'Known bug · no ticket yet' }</span>` : '',
+	].join( '' );
+	return `<li class="test">
+		<span class="title">${ esc( t.title ) }</span>
+		<span class="where">${ envCell( t ) }<span class="projects">${ t.projects.map( esc ).join( ' · ' ) }</span></span>
+		<span class="tags">${ tags }</span>
+		${ t.desc ? `<span class="desc">${ esc( t.desc ) }</span>` : '' }
+		${ t.known?.reason ? `<span class="known-note">Expected to fail: ${ esc( t.known.reason ) }</span>` : '' }
+		<span class="loc">${ esc( t.file ) }:${ t.line }</span>
+	</li>`;
+}
+
+const typeBars = ( list ) => TYPES.map( ( v ) => [ v, list.filter( ( t ) => t.types.includes( v ) ).length ] ).filter( ( [ , n ] ) => n ).map( ( [ v, n ] ) => `<span class="chip">@${ v }&nbsp;<span class="chip-n">(${ n })</span></span>` ).join( '' );
+
+function specHTML( s, searching ) {
+	const sum = DATA.specs[ s.file ];
+	const known = s.tests.filter( ( t ) => t.known ).length;
+	const head = `<span class="file">${ esc( s.file.split( '/' ).pop() ) }</span><span class="spec-n">${ plural( s.tests.length, 'test' ) }${ known ? ` · <span class="bugs">${ plural( known, 'known bug' ) }</span>` : '' }</span>${ sum ? `<span class="sum">${ esc( sum ) }</span>` : '' }`;
+	const rows = state.sort === 'name' ? [ ...s.tests ].sort( ( a, b ) => a.title.localeCompare( b.title ) ) : s.tests;
+	return `<details class="spec" data-spec="${ esc( s.file ) }" ${ state.openSpecs.has( s.file ) || searching ? 'open' : '' }>
+		<summary><svg class="tri" viewBox="0 0 10 10" stroke-width="1.6" aria-hidden="true"><path d="M2 3.5l3 3 3-3"/></svg>${ head }</summary>
+		<ul class="tests">${ rows.map( testRow ).join( '' ) }</ul>
+	</details>`;
+}
+
+function treeHTML( list ) {
+	if ( ! list.length ) {
+		return '<div class="empty">No tests match these filters. <button class="linkbtn" data-act="clear">Clear all filters</button></div>';
+	}
+	const searching = !! state.q;
+	const cats = [ ...new Set( list.map( ( t ) => t.cat ) ) ].map( ( cat ) => {
+		const ct = list.filter( ( t ) => t.cat === cat );
+		const specs = [ ...new Set( ct.map( ( t ) => t.file ) ) ].map( ( file ) => ( { file, name: file, tests: ct.filter( ( t ) => t.file === file ) } ) );
+		return { cat, name: catName( cat ), tests: ct, specs };
+	} );
+	const by = {
+		file: () => 0,
+		name: ( a, b ) => a.name.localeCompare( b.name ),
+		count: ( a, b ) => b.tests.length - a.tests.length,
+	}[ state.sort ];
+	cats.sort( by );
+	cats.forEach( ( c ) => c.specs.sort( by ) );
+	return cats.map( ( c ) => `<details class="cat" data-cat="${ esc( c.cat ) }" ${ state.openCats.has( c.cat ) || searching ? 'open' : '' }>
+		<summary><span class="name"><svg class="tri" viewBox="0 0 10 10" stroke-width="1.6" aria-hidden="true"><path d="M2 3.5l3 3 3-3"/></svg>${ esc( c.name ) }</span><span class="meta">${ plural( c.specs.length, 'spec' ) } · ${ plural( c.tests.length, 'test' ) }</span><span class="bars">${ typeBars( c.tests ) }</span></summary>
+		<div class="specs">${ c.specs.map( ( s ) => specHTML( s, searching ) ).join( '' ) }</div>
+	</details>` ).join( '' );
+}
+
+function render( keepFocus ) {
+	const active = document.activeElement;
+	const focusId = active?.id;
+	const caret = active?.selectionStart;
+	const list = tests.filter( ( t ) => passes( t ) );
+	renderStats( list );
+	const showing = list.length === tests.length ? `All ${ tests.length } tests` : `Showing ${ list.length } of ${ tests.length } tests`;
+	document.getElementById( 'view' ).innerHTML = `<div class="tree">${ toolbar() }${ filterBar() }<span class="showing">${ showing }</span>${ treeHTML( list ) }</div>`;
+	if ( focusId && keepFocus ) {
+		const el = document.getElementById( focusId );
+		el?.focus();
+		if ( caret != null && el?.setSelectionRange ) el.setSelectionRange( caret, caret );
+	}
+}
+
+const view = document.getElementById( 'view' );
+view.addEventListener( 'input', ( e ) => {
+	if ( e.target.id === 'q' ) { state.q = e.target.value.trim(); render( true ); }
+} );
+view.addEventListener( 'change', ( e ) => {
+	const t = e.target;
+	if ( t.id === 'sort' ) { state.sort = t.value; render( true ); return; }
+	if ( t.dataset.facet ) {
+		const set = state.sel[ t.dataset.facet ];
+		t.checked ? set.add( t.dataset.value ) : set.delete( t.dataset.value );
+		render( true );
+	}
+} );
+view.addEventListener( 'toggle', ( e ) => {
+	const d = e.target;
+	if ( d.dataset.cat !== undefined ) d.open ? state.openCats.add( d.dataset.cat ) : state.openCats.delete( d.dataset.cat );
+	if ( d.dataset.spec ) d.open ? state.openSpecs.add( d.dataset.spec ) : state.openSpecs.delete( d.dataset.spec );
+}, true );
+view.addEventListener( 'click', ( e ) => {
+	const b = e.target.closest( '[data-act]' );
+	if ( ! b ) return;
+	const act = b.dataset.act;
+	if ( act === 'expand' ) tests.forEach( ( t ) => { state.openCats.add( t.cat ); state.openSpecs.add( t.file ); } );
+	if ( act === 'collapse' ) { state.openCats.clear(); state.openSpecs.clear(); }
+	if ( act === 'clear' ) FACETS.forEach( ( f ) => state.sel[ f.key ].clear() );
+	if ( act === 'remove' ) state.sel[ b.dataset.facet ].delete( b.dataset.value );
+	if ( act === 'pop' ) state.pop = state.pop === b.dataset.key ? null : b.dataset.key;
+	render();
+	if ( act === 'pop' ) document.querySelector( `[data-act="pop"][data-key="${ b.dataset.key }"]` )?.focus();
+} );
+document.addEventListener( 'click', ( e ) => {
+	if ( state.pop && ! e.target.closest( '.fpick' ) ) { state.pop = null; render(); }
+} );
+document.addEventListener( 'keydown', ( e ) => {
+	if ( e.key === 'Escape' && state.pop ) {
+		const key = state.pop;
+		state.pop = null;
+		render();
+		document.querySelector( `[data-act="pop"][data-key="${ key }"]` )?.focus();
+	}
+} );
+
+const modeButton = document.getElementById( 'mode' );
+function setMode( mode ) {
+	document.documentElement.dataset.mode = mode;
+	modeButton.setAttribute( 'aria-pressed', String( mode === 'light' ) );
+	try { localStorage.setItem( 'coverage-mode', mode ); } catch {}
+}
+modeButton.addEventListener( 'click', () => setMode( document.documentElement.dataset.mode === 'light' ? 'dark' : 'light' ) );
+let savedMode = 'dark';
+try { savedMode = localStorage.getItem( 'coverage-mode' ) || 'dark'; } catch {}
+setMode( savedMode );
+
+if ( DATA.siteName ) {
+	const siteName = document.getElementById( 'site-name' );
+	siteName.textContent = DATA.siteName;
+	siteName.hidden = false;
+	document.title = `${ DATA.siteName } · E2E Test Coverage`;
+}
+
+const generated = new Date( DATA.generatedAt ).toLocaleString( undefined, { dateStyle: 'medium', timeStyle: 'short' } );
+document.getElementById( 'foot' ).textContent = [
+	`Generated ${ generated }${ DATA.commit ? ` from commit ${ DATA.commit }` : '' } by npm run test:e2e:coverage.`,
+	DATA.unlisted.length ? `Not listed: ${ DATA.unlisted.join( ', ' ) } (no settings file on the machine that generated this page).` : '',
+].filter( Boolean ).join( ' ' );
+
+render();
+</script>
+</body>
+</html>

@@ -1,3 +1,6 @@
+/**
+ * Primary menu: accessible name, working links, the agreed dropdown keyboard behavior, and the mobile menu at phone and mid widths.
+ */
 const { test, expect } = require( '../../support/test' );
 const {
 	dropdownChecks,
@@ -110,7 +113,14 @@ for ( const name of [ 'mobile', 'mid' ] ) {
 
 test(
 	'switches-to-mobile-at-breakpoint',
-	{ tag: [ '@readonly', '@functional' ] },
+	{
+		tag: [ '@readonly', '@functional' ],
+		annotation: {
+			type: 'description',
+			description:
+				'Resizes across the mobile-nav breakpoint and checks the menu switches between desktop and mobile.',
+		},
+	},
 	async ( { page } ) => {
 		const { height } = viewports.desktop;
 		await page.setViewportSize( {
